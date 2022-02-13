@@ -4,7 +4,7 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-from utils import load_data, plot_roc, evaluate
+from utils import evaluate, load_data, plot_roc
 
 data_dir = "data/500hz_csi_data/human_count/run_circle"
 labels = os.listdir(data_dir)
@@ -30,5 +30,6 @@ if __name__ == "__main__":
     evaluate(y_test, y_pred)
     # 画出ROC曲线
     Y_score = classifier.predict_proba(X_test)
-    plot_roc(Y_test, Y_score, labels, title="Random Forest - human_count/run_circle",
-             out_file="out/random_forest.roc.png")
+    plot_roc(
+        Y_test, Y_score, labels, title="Random Forest(human_count/run_circle)", out_file="out/random_forest.roc.png"
+    )
