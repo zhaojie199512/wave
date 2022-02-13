@@ -50,8 +50,8 @@ class MyNN(nn.Module):
             L_train, _ = self._run_epoch(D_train, loss_fn, optimizer, mode="train")
             L_test, outputs = self._run_epoch(D_test, loss_fn, optimizer, mode="test")
             accuracy = torch.sum(torch.argmax(outputs, -1) == y_test) / len(outputs)
-            print(f"epoch = {epoch}, loss_train = {L_train:.3f}, loss_test = {L_test:.3f}, accuracy = {accuracy:.3f}")
-        return outputs.cpu().numpy().astype(np.float)
+            print(f"epoch = {epoch+1}, loss_train = {L_train:.3f}, loss_test = {L_test:.3f}, accuracy = {accuracy:.3f}")
+        return outputs.cpu().numpy().astype(float)
 
     def reset_parameters(self):
         for param in self.parameters():
