@@ -3,19 +3,20 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn import metrics, preprocessing
+import torch
 
 
-def load_data(data_dir, labels, length, stride):
+def load_data(path, classes, length, stride):
     X, y = [], []
-    for i, label in enumerate(labels):
-        for file in os.listdir(f"{data_dir}/{label}/target"):
-            if file.endswith("wave.csv"):
-                mat = np.loadtxt(f"{data_dir}/{label}/target/{file}", delimiter=",")
-                ind = np.arange(0, len(mat) - length + 1, stride)
-                X += [mat[s : s + length] for s in ind]
+    for i, c in enumerate(classes):
+        for f in os.listdir(f"{path}/{c}/target"):
+            if f.endswith("wave.csv"):
+                arr = np.loadtxt(f"{path}/{c}/target/{f}", delimiter=",")
+                ind = np.arange(0, len(arr) - length + 1, stride)
+                X += [arr[s : s + length] for s in ind]
                 y += [i] * len(ind)
     X, y = np.array(X), np.array(y)
-    Y = preprocessing.label_binarize(y, classes=np.arange(len(labels)))  # onehot概率化
+    Y = preprocessing.label_binarize(y, classes=range(len(classes)))  # onehot概率化
     return X, y, Y
 
 
@@ -54,19 +55,18 @@ def plot_roc(Y_test, Y_score, labels, title=None, out_file=None):
 
 
 def evaluate(y_true, y_pred):
-    scores = {
-        "accuracy": metrics.accuracy_score(y_true, y_pred),
-        "macro_precision": metrics.precision_score(y_true, y_pred, average="macro"),
-        "micro_precision": metrics.precision_score(y_true, y_pred, average="micro"),
-        "weighted_precision": metrics.precision_score(y_true, y_pred, average="weighted"),
-        "macro_recall": metrics.recall_score(y_true, y_pred, average="macro"),
-        "micro_recall": metrics.recall_score(y_true, y_pred, average="micro"),
-        "weighted_recall": metrics.recall_score(y_true, y_pred, average="weighted"),
-        "macro_f1": metrics.f1_score(y_true, y_pred, average="macro"),
-        "micro_f1": metrics.f1_score(y_true, y_pred, average="micro"),
-        "weighted_f1": metrics.f1_score(y_true, y_pred, average="weighted"),
-    }
-    for k, score in scores.items():
-        print(f"{k:>20}: {score:.3f}")
-    confusion_matrix = metrics.confusion_matrix(y_true, y_pred)
-    print(f"    confusion_matrix:\n{confusion_matrix}")
+    print(f"● Accuracy            = {metrics.accuracy_score(y_true, y_pred):.3f}")
+    #
+    print(f"● Precision(macro)    = {metrics.precision_score(y_true, y_pred, average='macro'):.3f}")
+    print(f"● Precision(micro)    = {metrics.precision_score(y_true, y_pred, average='micro'):.3f}")
+    print(f"● Precision(weighted) = {metrics.precision_score(y_true, y_pred, average='weighted'):.3f}")
+    #
+    print(f"● Recall(macro)       = {metrics.precision_score(y_true, y_pred, average='macro'):.3f}")
+    print(f"● Recall(micro)       = {metrics.precision_score(y_true, y_pred, average='micro'):.3f}")
+    print(f"● Recall(weighted)    = {metrics.precision_score(y_true, y_pred, average='weighted'):.3f}")
+    #
+    print(f"● F1(macro)           = {metrics.precision_score(y_true, y_pred, average='macro'):.3f}")
+    print(f"● F1(micro)           = {metrics.precision_score(y_true, y_pred, average='micro'):.3f}")
+    print(f"● F1(weighted)        = {metrics.precision_score(y_true, y_pred, average='weighted'):.3f}")
+    #
+    print(f"● Confusion Matrix    =\n{metrics.confusion_matrix(y_true, y_pred)}")
