@@ -30,5 +30,10 @@ if __name__ == "__main__":
     evaluate(y_test, y_pred)
     # 画出ROC曲线
     Y_score = classifier.predict_proba(X_test)
-    plot_roc(Y_test, Y_score, labels, title="Logistic Regression - human_count/run_circle",
-             out_file="out/logistic_regression.roc.png")
+    plot_roc(
+        Y_test,
+        Y_score,
+        labels,
+        title="Logistic Regression - human_count/run_circle",
+        out_file="out/logistic_regression.roc.png",
+    )

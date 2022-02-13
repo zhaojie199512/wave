@@ -12,7 +12,7 @@ def load_data(data_dir, labels, length, stride):
             if file.endswith("wave.csv"):
                 mat = np.loadtxt(f"{data_dir}/{label}/target/{file}", delimiter=",")
                 ind = np.arange(0, len(mat) - length + 1, stride)
-                X += [mat[s: s + length] for s in ind]
+                X += [mat[s : s + length] for s in ind]
                 y += [i] * len(ind)
     X, y = np.array(X), np.array(y)
     Y = preprocessing.label_binarize(y, classes=np.arange(len(labels)))  # onehot概率化
@@ -64,9 +64,9 @@ def evaluate(y_true, y_pred):
         "weighted_recall": metrics.recall_score(y_true, y_pred, average="weighted"),
         "macro_f1": metrics.f1_score(y_true, y_pred, average="macro"),
         "micro_f1": metrics.f1_score(y_true, y_pred, average="micro"),
-        "weighted_f1": metrics.f1_score(y_true, y_pred, average="weighted")
+        "weighted_f1": metrics.f1_score(y_true, y_pred, average="weighted"),
     }
     for k, score in scores.items():
-        print(f'{k:>20}: {score:.3f}')
+        print(f"{k:>20}: {score:.3f}")
     confusion_matrix = metrics.confusion_matrix(y_true, y_pred)
-    print(f'    confusion_matrix:\n{confusion_matrix}')
+    print(f"    confusion_matrix:\n{confusion_matrix}")
