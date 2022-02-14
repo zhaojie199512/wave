@@ -19,6 +19,7 @@ class MyNN(nn.Module):
     def __init__(self, seq_len, d_in, d_out, d_hidden, lstm_layers=4):
         super(MyNN, self).__init__()
         self.in_proj = nn.Linear(in_features=d_in, out_features=d_hidden)  # 输入映射
+        self.norm = nn.LayerNorm(d_hidden)
         self.lstm = nn.LSTM(d_hidden, d_hidden, num_layers=lstm_layers)  # RNN网络
         self.aggr = nn.Conv1d(in_channels=seq_len, out_channels=1, kernel_size=1)  # 聚合函数
         self.out_proj = nn.Linear(d_hidden, d_out)  # 输出映射
@@ -27,6 +28,7 @@ class MyNN(nn.Module):
 
     def forward(self, x):
         x = self.in_proj(x)
+        x = self.norm(x)
         x, _ = self.lstm(x)
         x = self.aggr(x)
         x = self.out_proj(x)
@@ -36,10 +38,13 @@ class MyNN(nn.Module):
         #
         X_train = torch.from_numpy(D_train[0]).to(device=device, dtype=torch.float)
         y_train = torch.from_numpy(D_train[1]).to(device=device, dtype=torch.int64)
+        X_std, X_mean = torch.std_mean(X_train, dim=0, keepdim=True)
+        X_train = (X_train - X_mean) / X_std
         D_train = DataLoader(TensorDataset(X_train, y_train), batch_size, shuffle=True)
         #
         X_test = torch.from_numpy(D_test[0]).to(device=device, dtype=torch.float)
         y_test = torch.from_numpy(D_test[1]).to(device=device, dtype=torch.int64)
+        X_test = (X_test - X_mean) / X_std
         D_test = DataLoader(TensorDataset(X_test, y_test), batch_size, shuffle=False)
         #
         loss_fn = nn.CrossEntropyLoss()
@@ -85,7 +90,7 @@ class MyNN(nn.Module):
 if __name__ == "__main__":
     # 加载数据
     classes = os.listdir(f"data/{data_name}")
-    X, y, Y = load_data(f"data/{data_name}", classes, length=300, stride=30)
+    X, y, Y = load_data(f"data/{data_name}", classes, length=300, stride=10)
     # 切分数据
     X_train, X_test, y_train, y_test, Y_train, Y_test = train_test_split(
         X, y, Y, test_size=0.4, random_state=random_state
