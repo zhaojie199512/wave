@@ -12,7 +12,7 @@ random_state = 0
 data_name = "500hz_csi_data/human_count/run_circle"
 #
 batch_size = 32
-device = "cpu"
+device = "cuda:0"
 
 
 class MyNN(nn.Module):
