@@ -3,7 +3,6 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn import metrics, preprocessing
-import torch
 
 
 def load_data(path, classes, length, stride):
@@ -13,36 +12,35 @@ def load_data(path, classes, length, stride):
             if f.endswith("wave.csv"):
                 arr = np.loadtxt(f"{path}/{c}/target/{f}", delimiter=",")
                 ind = np.arange(0, len(arr) - length + 1, stride)
-                X += [arr[s : s + length] for s in ind]
+                X += [arr[s: s + length] for s in ind]
                 y += [i] * len(ind)
     X, y = np.array(X), np.array(y)
     Y = preprocessing.label_binarize(y, classes=range(len(classes)))  # onehot概率化
     return X, y, Y
 
 
-def plot_roc(Y_test, Y_score, labels, title=None, out_file=None):
-    plt.figure(figsize=[8, 8], dpi=100)
-    if title is not None:
-        plt.title(title)
+def plot_roc(Y_test, Y_score, classes, title, out_file=None):
+    plt.figure(figsize=[10, 10], dpi=100)
+    plt.title(title)
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.xlabel("FPR")
     plt.ylabel("TPR")
     # 所有类别的 FPR、TPR
     fpr_all, tpr_all = [], []
-    for i, label in enumerate(labels):
+    for i, c in enumerate(classes):
         fpr, tpr, _ = metrics.roc_curve(Y_test[:, i], Y_score[:, i])
         fpr_all += [fpr]
         tpr_all += [tpr]
         auc = metrics.auc(fpr, tpr)
-        plt.plot(fpr, tpr, lw=1, label=f"ROC curve of class {label} (AUC = {auc:0.2f})")
+        plt.plot(fpr, tpr, lw=1, label=f"ROC curve of class {c} (AUC = {auc:0.2f})")
     # micro auc直接展平
     micro_fpr, micro_tpr, _ = metrics.roc_curve(Y_test.ravel(), Y_score.ravel())
     micro_auc = metrics.auc(micro_fpr, micro_tpr)
     plt.plot(micro_fpr, micro_tpr, "--", lw=1, label=f"micro-average ROC curve (AUC = {micro_auc:0.2f})")
     # macro auc 插值取平均
     macro_fpr = np.unique(np.concatenate(fpr_all))
-    macro_tpr = sum([np.interp(macro_fpr, fpr, tpr) for fpr, tpr in zip(fpr_all, tpr_all)]) / len(labels)
+    macro_tpr = sum([np.interp(macro_fpr, fpr, tpr) for fpr, tpr in zip(fpr_all, tpr_all)]) / len(classes)
     macro_auc = metrics.auc(macro_fpr, macro_tpr)
     plt.plot(macro_fpr, macro_tpr, "--", lw=1, label=f"macro-average ROC curve (AUC = {macro_auc:0.2f})")
     # 画出斜线
