@@ -112,5 +112,5 @@ class MyLSTM(nn.Module):
                     optimizer.step()
                 loss_acc += loss.item()
                 loss_ave = loss_acc / (batch_idx + 1)
-                outputs += [output.cpu()]
+                outputs += [output]
         return loss_ave, torch.cat(outputs)
