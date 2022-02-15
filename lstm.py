@@ -40,7 +40,7 @@ class MyLSTM(nn.Module):
         X_norm -= self.X_mean
         X_norm /= self.X_std
         #
-        outputs = torch.cat([self(x) for x in DataLoader(TensorDataset(X_norm), batch_size, shuffle=False)])
+        outputs = torch.cat([self(x[0]) for x in DataLoader(TensorDataset(X_norm), batch_size, shuffle=False)])
         return outputs.cpu().numpy().astype(float)
 
     def save(self, file: str):
