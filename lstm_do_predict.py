@@ -16,13 +16,12 @@ if __name__ == "__main__":
     # 加载数据
     length, stride = 300, 10
     arr = np.loadtxt(file_path, delimiter=",")
-    X = np.concatenate([arr[s: s + length] for s in np.arange(0, len(arr) - length + 1, stride)])
+    X = np.array([arr[s : s + length] for s in np.arange(0, len(arr) - length + 1, stride)])
     # 加载分类器
     net = MyLSTM(seq_len=300, d_in=30, d_out=5, d_hidden=64).to(device)
-    net.load('out/lstm.pth')
-    # 评估模型
+    net.load("out/lstm.pth")
+    # 预测
     y = net.predict(X, device=device)
+    print(y)
     c = np.bincount(y).argmax()
-    # 画出ROC曲线
-    print(f"Model outputs    : {y}")
     print(f"Prediction result: {classes[c]}")
