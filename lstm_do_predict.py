@@ -10,6 +10,9 @@ device = "cuda:0"
 data_name = "500hz_csi_data/human_count/run_circle"
 #
 file_path = "data/500hz_csi_data/human_count/run_circle/1_circle/target/1ren_3m_interval0.002s_circle_0wave.csv"
+#
+model_path = "out/lstm.pth"
+
 
 if __name__ == "__main__":
     classes = os.listdir(f"data/{data_name}")
@@ -19,7 +22,7 @@ if __name__ == "__main__":
     X = np.array([arr[s : s + length] for s in np.arange(0, len(arr) - length + 1, stride)])
     # 加载分类器
     net = MyLSTM(seq_len=300, d_in=30, d_out=5, d_hidden=64).to(device)
-    net.load("out/lstm.pth")
+    net.load(model_path)
     # 预测
     y = net.predict(X, device=device)
     print(y)

@@ -9,6 +9,8 @@ device = "cuda:0"
 #
 random_state = 0
 data_name = "500hz_csi_data/human_count/run_circle"
+#
+model_path = "out/lstm.pth"
 
 if __name__ == "__main__":
     # 加载数据
@@ -22,7 +24,7 @@ if __name__ == "__main__":
     net = MyLSTM(seq_len=300, d_in=30, d_out=5, d_hidden=64).to(device)
     net.fit((X_train, y_train), (X_test, y_test), device=device)
     # 保存模型
-    net.save('out/lstm.pth')
+    net.save(model_path)
     # 评估模型
     y_pred = net.predict(X_test, device=device)
     evaluate(y_test, y_pred)
