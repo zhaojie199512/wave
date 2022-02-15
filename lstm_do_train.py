@@ -1,19 +1,14 @@
 import os
-from typing import Optional, Tuple
 
-import numpy as np
-import torch
 from sklearn.model_selection import train_test_split
-from torch import nn, optim
-from torch.utils.data import DataLoader, Dataset, TensorDataset
 
+from lstm import MyLSTM
 from utils import evaluate, load_data, plot_roc
 
+device = "cuda:0"
+#
 random_state = 0
 data_name = "500hz_csi_data/human_count/run_circle"
-#
-batch_size = 32
-device = "cuda:0"
 
 if __name__ == "__main__":
     # 加载数据
@@ -24,8 +19,10 @@ if __name__ == "__main__":
         X, y, Y, test_size=0.4, random_state=random_state
     )
     # 训练分类器
-    net = MyNN(seq_len=300, d_in=30, d_out=5, d_hidden=64).to(device)
+    net = MyLSTM(seq_len=300, d_in=30, d_out=5, d_hidden=64).to(device)
     net.fit((X_train, y_train), (X_test, y_test))
+    # 保存模型
+    net.save('out/lstm.pth')
     # 评估模型
     y_pred = net.predict(X_test)
     evaluate(y_test, y_pred)

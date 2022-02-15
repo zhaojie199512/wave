@@ -1,23 +1,24 @@
-import os
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 import torch
 from torch import nn, optim
-from torch.utils.data import DataLoader, Dataset, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset
 
-from utils import evaluate, load_data, plot_roc
+batch_size = 32
 
 
 class MyLSTM(nn.Module):
     def __init__(self, seq_len: int, d_in: int, d_out: int, d_hidden: int, lstm_layers: int = 4):
-        super(MyNN, self).__init__()
+        super(MyLSTM, self).__init__()
         #
         self.in_proj = nn.Linear(in_features=d_in, out_features=d_hidden)  # 输入映射
         self.norm = nn.LayerNorm(normalized_shape=d_hidden)
         self.lstm = nn.LSTM(d_hidden, d_hidden, num_layers=lstm_layers)  # RNN网络
         self.aggr = nn.Conv1d(in_channels=seq_len, out_channels=1, kernel_size=1)  # 聚合函数
         self.out_proj = nn.Linear(in_features=d_hidden, out_features=d_out)  # 输出映射
+        #
+        self.X_mean, self.X_std = None, None
         #
         self.reset_parameters()
 
@@ -39,7 +40,7 @@ class MyLSTM(nn.Module):
         X_norm -= self.X_mean
         X_norm /= self.X_std
         #
-        outputs = torch.cat([self(x).cpu() for x in DataLoader(Dataset(X_norm), batch_size, shuffle=False)])
+        outputs = torch.cat([self(x).cpu() for x in DataLoader(TensorDataset(X_norm), batch_size, shuffle=False)])
         return outputs.numpy().astype(float)
 
     def save(self, file: str):
@@ -53,7 +54,7 @@ class MyLSTM(nn.Module):
     def load(self, file: str):
         states = torch.load(file)
         self.load_state_dict(states["net"])
-        self.X_std, self.X_mean = states["X_train"], states["X_mean"]
+        self.X_std, self.X_mean = states["X_std"], states["X_mean"]
 
     def fit(
         self,
@@ -78,7 +79,7 @@ class MyLSTM(nn.Module):
         D_test = DataLoader(TensorDataset(X_test, y_test), batch_size, shuffle=False)
         #
         loss_fn = nn.CrossEntropyLoss()
-        optimizer = optim.Adam(net.parameters(), lr=1e-3)
+        optimizer = optim.Adam(self.parameters(), lr=1e-3)
         #
         epoch = 1
         while True:
