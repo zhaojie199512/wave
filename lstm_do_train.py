@@ -21,7 +21,7 @@ if __name__ == "__main__":
         X, y, Y, test_size=0.4, random_state=random_state
     )
     # 训练分类器
-    net = MyLSTM(seq_len=300, d_in=30, d_out=5, d_hidden=64).to(device)
+    net = MyLSTM(seq_len=300, d_in=30, d_out=len(classes), d_hidden=64).to(device)
     net.fit((X_train, y_train), (X_test, y_test), device=device)
     # 保存模型
     net.save(model_path)

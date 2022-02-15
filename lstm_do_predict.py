@@ -16,6 +16,7 @@ model_path = "out/lstm.pth"
 
 if __name__ == "__main__":
     classes = os.listdir(f"data/{data_name}")
+    print(classes)
     # 加载数据
     length, stride = 300, 10
     arr = np.loadtxt(file_path, delimiter=",")
