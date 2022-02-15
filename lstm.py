@@ -40,8 +40,8 @@ class MyLSTM(nn.Module):
         X_norm -= self.X_mean
         X_norm /= self.X_std
         #
-        outputs = torch.cat([self(x).cpu() for x in DataLoader(TensorDataset(X_norm), batch_size, shuffle=False)])
-        return outputs.numpy().astype(float)
+        outputs = torch.cat([self(x) for x in DataLoader(TensorDataset(X_norm), batch_size, shuffle=False)])
+        return outputs.cpu().numpy().astype(float)
 
     def save(self, file: str):
         states = {
@@ -88,7 +88,7 @@ class MyLSTM(nn.Module):
             accuracy = torch.sum(torch.argmax(outputs, -1) == y_test) / len(outputs)
             print(f"epoch = {epoch}, loss_train = {L_train:.3f}, loss_test = {L_test:.3f}, accuracy = {accuracy:.3f}")
             if epoch >= epochs:
-                return outputs.numpy().astype(float)
+                return outputs.cpu().numpy().astype(float)
             epoch += 1
 
     def reset_parameters(self):

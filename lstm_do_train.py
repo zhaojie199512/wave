@@ -20,12 +20,12 @@ if __name__ == "__main__":
     )
     # 训练分类器
     net = MyLSTM(seq_len=300, d_in=30, d_out=5, d_hidden=64).to(device)
-    net.fit((X_train, y_train), (X_test, y_test))
+    net.fit((X_train, y_train), (X_test, y_test), device=device)
     # 保存模型
     net.save('out/lstm.pth')
     # 评估模型
-    y_pred = net.predict(X_test)
+    y_pred = net.predict(X_test, device=device)
     evaluate(y_test, y_pred)
     # 画出ROC曲线
-    Y_score = net.predict_proba(X_test)
+    Y_score = net.predict_proba(X_test, device=device)
     plot_roc(Y_test, Y_score, classes, title=f"LSTM({data_name})", out_file="out/lstm.roc.png")
