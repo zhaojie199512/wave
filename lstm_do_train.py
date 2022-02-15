@@ -15,6 +15,7 @@ model_path = "out/lstm.pth"
 if __name__ == "__main__":
     # 加载数据
     classes = os.listdir(f"data/{data_name}")
+    print(classes)
     X, y, Y = load_data(f"data/{data_name}", classes, length=300, stride=10)
     # 切分数据
     X_train, X_test, y_train, y_test, Y_train, Y_test = train_test_split(

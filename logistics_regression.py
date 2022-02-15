@@ -12,6 +12,7 @@ data_name = "500hz_csi_data/human_count/run_circle"
 if __name__ == "__main__":
     # 加载数据
     classes = os.listdir(f"data/{data_name}")
+    print(classes)
     X, y, Y = load_data(f"data/{data_name}", classes, length=300, stride=30)
     X = X.reshape(X.shape[0], -1)
     # 切分数据
