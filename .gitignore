@@ -1,6 +1,6 @@
 .vscode
 .idea
 
-data
+data*
 
 __pycache__
