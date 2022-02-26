@@ -1,22 +1,32 @@
 import os
+import random
+from pathlib import Path
 
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn import metrics, preprocessing
 
 
-def load_data(path, classes, length, stride):
-    X, y = [], []
+def load_data(data_dir, classes, *, seq_len=300, seq_stride=30):
+    data = [{"X": [], "y": [], "Y": []} for _ in range(3)]
+    if not isinstance(data_dir, Path):
+        data_dir = Path(data_dir)
     for i, c in enumerate(classes):
-        for f in os.listdir(f"{path}/{c}/target"):
-            if f.endswith("wave.csv"):
-                arr = np.loadtxt(f"{path}/{c}/target/{f}", delimiter=",")
-                ind = np.arange(0, len(arr) - length + 1, stride)
-                X += [arr[s: s + length] for s in ind]
-                y += [i] * len(ind)
-    X, y = np.array(X), np.array(y)
-    Y = preprocessing.label_binarize(y, classes=range(len(classes)))  # onehot概率化
-    return X, y, Y
+        files = [f for f in (data_dir / c / "target").iterdir() if f.name.endswith("wave.csv")]
+        ranges = [0, int(0.6 * len(files)), int(0.8 * len(files)), len(files)]
+        random.shuffle(files)
+        for item, start, end in zip(data, ranges[:-1], ranges[1:]):
+            for f in files[start:end]:
+                matrix = np.loadtxt(f, delimiter=",")
+                indices = np.arange(0, len(matrix) - seq_len + 1, seq_stride)
+                item["X"] += [matrix[s: s + seq_len] for s in indices]
+                item["y"] += [i] * len(files)
+                print(f'{f}: {len(matrix)} rows, {len(indices)} sequences')
+    for item in data:
+        item["X"] = np.array(item["X"])
+        item["y"] = np.array(item["y"])
+        item["Y"] = preprocessing.label_binarize(item["y"], classes=range(len(classes)))
+    return data
 
 
 def plot_roc(Y_test, Y_score, classes, title, out_file=None):
@@ -68,3 +78,10 @@ def evaluate(y_true, y_pred):
     print(f"● F1(weighted)        = {metrics.precision_score(y_true, y_pred, average='weighted'):.3f}")
     #
     print(f"● Confusion Matrix    =\n{metrics.confusion_matrix(y_true, y_pred)}")
+
+
+if __name__ == "__main__":
+    data = load_data("data/human_count/run_free", [f"{i}_free" for i in range(6)])
+    print(data[0]["X"].shape)
+    print(data[1]["X"].shape)
+    print(data[2]["X"].shape)

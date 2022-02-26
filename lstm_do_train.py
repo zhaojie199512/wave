@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # 加载数据
     classes = os.listdir(f"data/{data_name}")
     print(classes)
-    X, y, Y = load_data(f"data/{data_name}", classes, length=300, stride=10)
+    X, y, Y = load_data(f"data/{data_name}", classes, seq_len=300, seq_stride=10)
     # 切分数据
     X_train, X_test, y_train, y_test, Y_train, Y_test = train_test_split(
         X, y, Y, test_size=0.4, random_state=random_state
