@@ -14,21 +14,16 @@ model_path = "out/lstm.pth"
 
 if __name__ == "__main__":
     # 加载数据
-    classes = os.listdir(f"data/{data_name}")
+    classes = [f'{i}_free' for i in range(6)]
     print(classes)
-    X, y, Y = load_data(f"data/{data_name}", classes, seq_len=300, seq_stride=10)
-    # 切分数据
-    X_train, X_test, y_train, y_test, Y_train, Y_test = train_test_split(
-        X, y, Y, test_size=0.4, random_state=random_state
-    )
+    D_train, D_validate, D_evaluate = load_data(f"data/{data_name}", classes, seq_len=300, seq_step=10)
     # 训练分类器
     net = MyLSTM(seq_len=300, d_in=30, d_out=len(classes), d_hidden=64).to(device)
-    net.fit((X_train, y_train), (X_test, y_test), device=device)
-    # 保存模型
-    net.save(model_path)
+    net.fit(D_train, D_validate, device=device)
+    net.evaluate(D_evaluate, device=device)
     # 评估模型
-    y_pred = net.predict(X_test, device=device)
-    evaluate(y_test, y_pred)
+    y_pred = net.predict(D_evaluate[0], device=device)
+    evaluate(D_evaluate[0], y_pred)
     # 画出ROC曲线
-    Y_score = net.predict_proba(X_test, device=device)
-    plot_roc(Y_test, Y_score, classes, title=f"LSTM({data_name})", out_file="out/lstm.roc.png")
+    Y_score = net.predict_proba(D_evaluate[0], device=device)
+    plot_roc(D_evaluate[1], Y_score, classes, title=f"LSTM({data_name})", out_file="out/lstm.roc.png")

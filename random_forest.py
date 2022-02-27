@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # 加载数据
     classes = os.listdir(f"data/{data_name}")
     print(classes)
-    X, y, Y = load_data(f"data/{data_name}", classes, seq_len=300, seq_stride=30)
+    X, y, Y = load_data(f"data/{data_name}", classes, seq_len=300, seq_step=30)
     X = X.reshape(X.shape[0], -1)
     # 切分数据
     X_train, X_test, y_train, y_test, Y_train, Y_test = train_test_split(
