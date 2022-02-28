@@ -9,7 +9,7 @@ batch_size = 32
 
 
 class MyLSTM(nn.Module):
-    def __init__(self, seq_len: int, d_in: int, d_out: int, d_hidden: int, lstm_layers: int = 4, out_dir="out"):
+    def __init__(self, seq_len: int, d_in: int, d_out: int, d_hidden: int, lstm_layers: int = 4, ckpts_dir="ckpts"):
         super(MyLSTM, self).__init__()
         #
         self.in_proj = nn.Linear(in_features=d_in, out_features=d_hidden)  # 输入映射
@@ -19,7 +19,7 @@ class MyLSTM(nn.Module):
         self.out_proj = nn.Linear(in_features=d_hidden, out_features=d_out)  # 输出映射
         #
         self.X_mean, self.X_std = None, None
-        self.out_dir = out_dir
+        self.ckpts_dir = ckpts_dir
         #
         self.reset_parameters()
 
@@ -96,6 +96,8 @@ class MyLSTM(nn.Module):
         loss_fn = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.parameters(), lr=1e-3)
         #
+        history = {"L_train": [], "L_validate": [], "accuracy": []}
+        #
         L_min = float("inf")
         for epoch in range(epochs):
             L_train, _ = self._run_epoch(D_train, loss_fn, optimizer)
@@ -106,7 +108,13 @@ class MyLSTM(nn.Module):
             )
             if L_validate < L_min:
                 L_min = L_validate
-                self.save(f"{self.out_dir}/epoch_{epoch}-loss_{L_validate:.3f}.pth")
+                ckpt = f"{self.ckpts_dir}/epoch_{epoch}-loss_{L_validate:.3f}.pth"
+                self.save(ckpt)
+                print(f"save checkpoint: {ckpt}")
+            history["L_train"].append(L_train)
+            history["L_validate"].append(L_validate)
+            history["accuracy"].append(accuracy.item())
+        return history
 
     def reset_parameters(self):
         for param in self.parameters():

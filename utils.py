@@ -63,6 +63,20 @@ def plot_roc(Y_test, Y_score, classes, title, out_file=None):
     plt.show()
 
 
+def plot_history(history, out_file=None):
+    plt.figure(figsize=[10, 10], dpi=100)
+    plt.title("LSTM")
+    plt.xlabel("epochs")
+    x = np.arange(len(history["L_train"]))
+    plt.plot(x, history["L_train"], lw=1, label="train loss")
+    plt.plot(x, history["L_validate"], lw=1, label="validate loss")
+    #
+    plt.legend()
+    if out_file is not None:
+        plt.savefig(out_file)
+    plt.show()
+
+
 def evaluate(y_true, y_pred):
     print(f"● Accuracy            = {metrics.accuracy_score(y_true, y_pred):.3f}")
     #
