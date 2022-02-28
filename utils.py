@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from sklearn import metrics, preprocessing
 
 
-def load_data(data_dir, classes, *, seq_len=100, seq_step=100):
+def load_data(data_dir, classes, *, seq_len=200, seq_step=100):
     if not isinstance(data_dir, Path):
         data_dir = Path(data_dir)
     chunks, data = [([], []) for _ in range(3)], {}

@@ -13,9 +13,10 @@ class MyLSTM(nn.Module):
         super(MyLSTM, self).__init__()
         #
         self.in_proj = nn.Linear(in_features=d_in, out_features=d_hidden)  # 输入映射
-        self.norm = nn.LayerNorm(normalized_shape=d_hidden)
+        self.norm1 = nn.LayerNorm(normalized_shape=d_hidden)
         self.lstm = nn.LSTM(d_hidden, d_hidden, num_layers=lstm_layers)  # RNN网络
         self.aggr = nn.Conv1d(in_channels=seq_len, out_channels=1, kernel_size=1)  # 聚合函数
+        self.norm2 = nn.LayerNorm(normalized_shape=d_hidden)
         self.out_proj = nn.Linear(in_features=d_hidden, out_features=d_out)  # 输出映射
         #
         self.X_mean, self.X_std = None, None
@@ -24,10 +25,9 @@ class MyLSTM(nn.Module):
         self.reset_parameters()
 
     def forward(self, x: torch.Tensor):
-        x = self.in_proj(x)
-        x = self.norm(x)
+        x = self.norm1(self.in_proj(x))
         x, _ = self.lstm(x)
-        x = self.aggr(x)
+        x = self.norm2(self.aggr(x))
         x = self.out_proj(x)
         return torch.softmax(x[:, 0], dim=-1)
 

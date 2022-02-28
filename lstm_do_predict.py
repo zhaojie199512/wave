@@ -1,29 +1,22 @@
-import os
-
-from sklearn.model_selection import train_test_split
 import numpy as np
 from lstm import MyLSTM
-from utils import evaluate, load_data, plot_roc
+
 
 device = "cuda:0"
 #
-data_name = "500hz_csi_data/human_count/run_circle"
-#
-file_path = "data/500hz_csi_data/human_count/run_circle/1_circle/target/1ren_3m_interval0.002s_circle_0wave.csv"
-#
-model_path = "out/lstm.pth"
-
+file_path = "data/human_count/run_free/0_free/target/0ren_500hz_3m_interval0.002s_20s_4wave.csv"
+ckpt_path = "ckpts/epoch_52-loss_1.489.pth"
+seq_len, seq_step = 200, 200
 
 if __name__ == "__main__":
-    classes = os.listdir(f"data/{data_name}")
+    classes = [f"{i}_free" for i in range(6)]
     print(classes)
     # 加载数据
-    length, stride = 300, 10
-    arr = np.loadtxt(file_path, delimiter=",")
-    X = np.array([arr[s : s + length] for s in np.arange(0, len(arr) - length + 1, stride)])
+    matrix = np.loadtxt(file_path, delimiter=",")
+    X = np.array([matrix[s : s + seq_len] for s in np.arange(0, len(matrix) - seq_len + 1, seq_step)])
     # 加载分类器
-    net = MyLSTM(seq_len=300, d_in=30, d_out=5, d_hidden=64).to(device)
-    net.load(model_path)
+    net = MyLSTM(seq_len=200, d_in=30, d_out=len(classes), d_hidden=64).to(device)
+    net.load(ckpt_path)
     # 预测
     y = net.predict(X, device=device)
     print(y)
