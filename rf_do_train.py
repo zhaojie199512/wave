@@ -33,5 +33,5 @@ if __name__ == "__main__":
     # 画出ROC曲线
     Y_score = classifier.predict_proba(data["X_validate"])
     plot_roc(
-        data["y_validate"], Y_score, classes, title=f"Random Forest({data_name})", out_file="out/random_forest.roc.png"
+        data["Y_validate"], Y_score, classes, title=f"Random Forest({data_name})", out_file="out/random_forest.roc.png"
     )
