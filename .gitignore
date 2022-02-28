@@ -1,6 +1,4 @@
-.vscode
-.idea
-
-data*
-
 __pycache__
+.vscode
+ckpts
+data*
