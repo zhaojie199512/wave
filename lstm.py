@@ -9,7 +9,7 @@ batch_size = 32
 
 
 class MyLSTM(nn.Module):
-    def __init__(self, seq_len: int, d_in: int, d_out: int, d_hidden: int, lstm_layers: int = 4, out_dir='out'):
+    def __init__(self, seq_len: int, d_in: int, d_out: int, d_hidden: int, lstm_layers: int = 4, out_dir="out"):
         super(MyLSTM, self).__init__()
         #
         self.in_proj = nn.Linear(in_features=d_in, out_features=d_hidden)  # 输入映射
@@ -31,11 +31,11 @@ class MyLSTM(nn.Module):
         x = self.out_proj(x)
         return torch.softmax(x[:, 0], dim=-1)
 
-    @torch.no_grad()
     def predict(self, X: np.ndarray, device: str = "cuda:0"):
         proba = self.predict_proba(X, device=device)
         return np.argmax(proba, axis=-1)
 
+    @torch.no_grad()
     def predict_proba(self, X: np.ndarray, device: str = "cuda:0"):
         X_norm = torch.from_numpy(X).to(device=device, dtype=torch.float32)
         X_norm -= self.X_mean
@@ -58,15 +58,16 @@ class MyLSTM(nn.Module):
         self.X_std, self.X_mean = states["X_std"], states["X_mean"]
 
     def evaluate(self, D_evaluate: Tuple[torch.Tensor, torch.Tensor], device: str = "cuda:0"):
-        X_evaluate = torch.from_numpy(D_evaluate[0]).to(device=device, dtype=torch.float32)
-        y_evaluate = torch.from_numpy(D_evaluate[1]).to(device=device, dtype=torch.int64)
-        X_norm = torch.from_numpy(X_evaluate).to(device=device, dtype=torch.float)
-        X_norm -= self.X_mean
-        X_norm /= self.X_std
+        X_evaluate, y_evaluate = D_evaluate
+        X_evaluate = torch.from_numpy(X_evaluate).to(device=device, dtype=torch.float32)
+        y_evaluate = torch.from_numpy(y_evaluate).to(device=device, dtype=torch.int64)
         #
-        outputs = torch.cat([self(x[0]) for x in DataLoader(TensorDataset(X_norm), batch_size, shuffle=False)])
+        X_evaluate -= self.X_mean
+        X_evaluate /= self.X_std
+        #
+        outputs = torch.cat([self(x[0]) for x in DataLoader(TensorDataset(X_evaluate), batch_size, shuffle=False)])
         accuracy = torch.sum(torch.argmax(outputs, -1) == y_evaluate) / len(outputs)
-        print(f'evaluate: accuracy = {accuracy:.3f}')
+        print(f"evaluate: accuracy = {accuracy:.3f}")
 
     def fit(
         self,
@@ -76,16 +77,18 @@ class MyLSTM(nn.Module):
         device: str = "cuda:0",
     ):
         #
-        X_train = torch.from_numpy(D_train[0]).to(device=device, dtype=torch.float32)
-        y_train = torch.from_numpy(D_train[1]).to(device=device, dtype=torch.int64)
+        X_train, y_train = D_train
+        X_train = torch.from_numpy(X_train).to(device=device, dtype=torch.float32)
+        y_train = torch.from_numpy(y_train).to(device=device, dtype=torch.int64)
         #
         self.X_std, self.X_mean = torch.std_mean(X_train, dim=0, keepdim=True)
         #
         X_train = (X_train - self.X_mean) / self.X_std
         D_train = DataLoader(TensorDataset(X_train, y_train), batch_size, shuffle=True)
         #
-        X_validate = torch.from_numpy(D_evaluate[0]).to(device=device, dtype=torch.float32)
-        y_validate = torch.from_numpy(D_evaluate[1]).to(device=device, dtype=torch.int64)
+        X_validate, y_validate = D_evaluate
+        X_validate = torch.from_numpy(X_validate).to(device=device, dtype=torch.float32)
+        y_validate = torch.from_numpy(y_validate).to(device=device, dtype=torch.int64)
         #
         X_validate = (X_validate - self.X_mean) / self.X_std
         D_evaluate = DataLoader(TensorDataset(X_validate, y_validate), batch_size, shuffle=False)
@@ -93,7 +96,7 @@ class MyLSTM(nn.Module):
         loss_fn = nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.parameters(), lr=1e-3)
         #
-        L_min = float('int')
+        L_min = float("inf")
         for epoch in range(epochs):
             L_train, _ = self._run_epoch(D_train, loss_fn, optimizer)
             L_validate, outputs = self._run_epoch(D_evaluate, loss_fn)
@@ -103,7 +106,7 @@ class MyLSTM(nn.Module):
             )
             if L_validate < L_min:
                 L_min = L_validate
-                self.save(f'{self.out_dir}/epoch_{epoch}-loss_{L_validate:.3f}.pth')
+                self.save(f"{self.out_dir}/epoch_{epoch}-loss_{L_validate:.3f}.pth")
 
     def reset_parameters(self):
         for param in self.parameters():

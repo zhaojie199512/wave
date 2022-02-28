@@ -6,29 +6,32 @@ from sklearn.model_selection import train_test_split
 
 from utils import evaluate, load_data, plot_roc
 
+#
 random_state = 0
-data_name = "500hz_csi_data/human_count/run_circle"
+data_name = "human_count/run_free"
+
 
 if __name__ == "__main__":
     # 加载数据
-    classes = os.listdir(f"data/{data_name}")
+    classes = [f"{i}_free" for i in range(6)]
     print(classes)
-    X, y, Y = load_data(f"data/{data_name}", classes, seq_len=300, seq_step=30)
-    X = X.reshape(X.shape[0], -1)
-    # 切分数据
-    X_train, X_test, y_train, y_test, Y_train, Y_test = train_test_split(
-        X, y, Y, test_size=0.4, random_state=random_state
+    data = load_data(f"data/{data_name}", classes, seq_len=200, seq_step=200)
+    X_train, y_train = data["X_train"].reshape(len(data["X_train"]), -1), data["y_train"]
+    X_validate, y_validate, Y_validate = (
+        data["X_validate"].reshape(len(data["X_validate"]), -1),
+        data["y_validate"],
+        data["Y_validate"],
     )
     # 数据降维
     pca = PCA(n_components=100)
     pca.fit(X_train)
-    X_train, X_test = pca.transform(X_train), pca.transform(X_test)
+    X_train, X_validate = pca.transform(X_train), pca.transform(X_validate)
     # 训练分类器
     classifier = RandomForestClassifier()
     classifier.fit(X_train, y_train)
     # 评估模型
-    y_pred = classifier.predict(X_test)
-    evaluate(y_test, y_pred)
+    y_pred = classifier.predict(X_validate)
+    evaluate(y_validate, y_pred)
     # 画出ROC曲线
-    Y_score = classifier.predict_proba(X_test)
-    plot_roc(Y_test, Y_score, classes, title=f"Random Forest({data_name})", out_file="out/random_forest.roc.png")
+    Y_score = classifier.predict_proba(X_validate)
+    plot_roc(Y_validate, Y_score, classes, title=f"Random Forest({data_name})", out_file="out/random_forest.roc.png")
