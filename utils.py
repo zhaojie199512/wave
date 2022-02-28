@@ -7,30 +7,27 @@ from matplotlib import pyplot as plt
 from sklearn import metrics, preprocessing
 
 
-def load_data(data_dir, classes, *, seq_len=300, seq_step=30):
-    chunks, labels = [([], []) for _ in range(3)], ['train', 'validate', 'evaluate']
+def load_data(data_dir, classes, *, seq_len=100, seq_step=100):
     if not isinstance(data_dir, Path):
         data_dir = Path(data_dir)
-    for ind, cat in enumerate(classes):
-        files = [file for file in (data_dir / cat / "target").iterdir() if file.name.endswith("wave.csv")]
+    chunks, data = [([], []) for _ in range(3)], {}
+    for i, c in enumerate(classes):
+        files = [f for f in (data_dir / c / "target").iterdir() if f.name.endswith("wave.csv")]
         random.shuffle(files)
-        splits = [0, int(0.6 * len(files)), int(0.8 * len(files)), len(files)]
+        splits = [0, 3 * len(files) // 5, 4 * len(files) // 5, len(files)]
         ranges = zip(splits[:-1], splits[1:])
-        for label, (X, y), (start, end) in zip(labels, chunks, ranges):
-            for file in files[start:end]:
+        for (X, y), (f, t), label in zip(chunks, ranges, ["train", "validate", "evaluate"]):
+            for file in files[f:t]:
                 matrix = np.loadtxt(file, delimiter=",")
                 slices = np.arange(0, len(matrix) - seq_len + 1, seq_step)
-                X += [matrix[s: s + seq_len] for s in slices]
-                y += [ind] * len(slices)
+                X += [matrix[s : s + seq_len] for s in slices]
+                y += [i] * len(slices)
                 print(f"[{label}] {file}: {len(matrix)} rows, {len(slices)} sequences")
-    return [
-        {
-            "X": np.array(X),
-            "y": np.array(y),
-            "Y": preprocessing.label_binarize(y, classes=np.arange(len(classes))),
-        }
-        for (X, y) in chunks
-    ]
+    for (X, y), label in zip(chunks, ["train", "validate", "evaluate"]):
+        data[f"X_{label}"] = np.array(X)
+        data[f"y_{label}"] = np.array(y)
+        data[f"Y_{label}"] = preprocessing.label_binarize(y, classes=np.arange(len(classes)))
+    return data
 
 
 def plot_roc(Y_test, Y_score, classes, title, out_file=None):
@@ -87,8 +84,5 @@ def evaluate(y_true, y_pred):
 if __name__ == "__main__":
     data = load_data("data/human_count/run_free", [f"{i}_free" for i in range(6)])
 
-    for i in range(3):
-        print(f'data[{i}].X.shape = {data[i]["X"].shape}')
-        print(f'data[{i}].y.shape = {data[i]["y"].shape}')
-        print(f'data[{i}].Y.shape = {data[i]["Y"].shape}')
-        print(f'counter: {np.bincount(data[i]["y"])}')
+    for k, v in data.items():
+        print(k, ":", v.shape)
