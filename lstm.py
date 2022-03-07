@@ -41,8 +41,8 @@ class MyLSTM(nn.Module):
         X_norm -= self.X_mean
         X_norm /= self.X_std
         #
-        outputs = torch.cat([self(x[0]) for x in DataLoader(TensorDataset(X_norm), batch_size, shuffle=False)])
-        return outputs.cpu().numpy().astype(float)
+        outputs = torch.cat([self(x[0]).cpu() for x in DataLoader(TensorDataset(X_norm), batch_size, shuffle=False)])
+        return outputs.numpy().astype(float)
 
     def save(self, file: str):
         states = {
@@ -57,6 +57,7 @@ class MyLSTM(nn.Module):
         self.load_state_dict(states["net"])
         self.X_std, self.X_mean = states["X_std"], states["X_mean"]
 
+    @torch.no_grad()
     def evaluate(self, D_evaluate: Tuple[torch.Tensor, torch.Tensor], device: str = "cuda:0"):
         X_evaluate, y_evaluate = D_evaluate
         X_evaluate = torch.from_numpy(X_evaluate).to(device=device, dtype=torch.float32)
